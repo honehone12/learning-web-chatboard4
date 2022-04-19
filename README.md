@@ -1,2 +1,3 @@
 # learning-web-chatboard4
-earning web project with go framework gin etc... 
+learning web project with go framework gin etc...<br>
+refering to https://github.com/mushahiroyuki/gowebprog<br>

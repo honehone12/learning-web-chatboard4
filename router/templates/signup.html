@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KEIJIBAN</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+  </head>
+  <body>
+
+    <div class="container">
+      
+      <p class="lead">
+        Welcome!! Your account starts here!!
+      </p>
+      
+      <form class="form-signin" role="form" action="/user/signup-account" method="post">
+        <h2 class="form-signin-heading">
+          KEIJIBAN
+        </h2>
+        <input type="hidden" name="state" value="{{ .state }}">
+        <div class="form-floating">
+          <input id="floating-name" type="text" name="name" class="form-control" placeholder="Name" required autofocus>
+          <label for="floating-name">Name</label>
+        </div>
+        <div class="form-floating">
+          <input id="floating-email" type="email" name="email" class="form-control" placeholder="Email address" required>
+          <label for="floating-name">Email</label>
+        </div>
+        <div class="form-floating">
+          <input id="floating-password" type="password" name="password" class="form-control" placeholder="Password" required>
+          <label for="floating-password">Password</label>
+        </div>
+
+        <br>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+      </form>
+            
+      
+    </div> <!-- /container -->
+    
+    <script src="/static/js/bootstrap.min.js"></script>
+  </body>
+</html>
