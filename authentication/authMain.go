@@ -108,6 +108,8 @@ func routingRequest(envelop *rabbitrpc.Envelope, corrId string,
 			createUser(&user, corrId)
 		case "readUser":
 			readUser(&user, corrId)
+		case "lockUser":
+			lockUser(&user, corrId)
 		default:
 			err = rabbitrpc.ErrorFunctionNotFound
 		}

@@ -29,6 +29,7 @@ const (
 
 var sessionMaker struct {
 	isInitialized     bool
+	showRedisLog      bool
 	logger            *log.Logger
 	redisConn         redis.Conn
 	block             cipher.Block
@@ -38,12 +39,13 @@ var sessionMaker struct {
 }
 
 // every time server is restarted, cookie become no longer valid
-func StartSessionMaker(useSecure, useHttpOnly bool) (err error) {
+func StartSessionMaker(useSecure, useHttpOnly, showLog bool) (err error) {
 	if sessionMaker.isInitialized {
 		return
 	}
 
 	sessionMaker.isInitialized = true
+	sessionMaker.showRedisLog = showLog
 
 	sessionMaker.redisConn, err = redis.Dial(
 		redisConnectionKind,

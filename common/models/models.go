@@ -13,6 +13,9 @@ type User struct {
 	Password  string    `xorm:"not null 'password'" json:"password"`
 	Salt      string    `xorm:"not null 'salt'" json:"salt"`
 	Token     string    `xorm:"TEXT 'token'" json:"token"`
+	NumErrors uint      `xorm:"num_errors" json:"num_errors"`
+	Locked    uint      `xorm:"locked" json:"locked"`
+	LockedAt  time.Time `xorm:"not null 'locked_at'" json:"locked_at"`
 	CreatedAt time.Time `xorm:"not null 'created_at'" json:"created_at"`
 }
 
@@ -25,7 +28,6 @@ type Session struct {
 	UserName   string    `xorm:"user_name" json:"user_name"`
 	UserEmail  string    `xorm:"user_email" json:"user_email"`
 	UserId     uint      `xorm:"user_id" json:"user_id"`
-	NumErrors  uint      `xorm:"num_errors" json:"num_errors"`
 	LastUpdate time.Time `xorm:"not null 'last_update'" json:"last_update"`
 	CreatedAt  time.Time `xorm:"not null 'created_at'" json:"created_at"`
 }

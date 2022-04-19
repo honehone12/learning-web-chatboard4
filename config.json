@@ -18,7 +18,7 @@
     "use_secure_cookie": true,
     "set_http_only_cookie": true,
     "db_name": "chatboard",
-    "show_sql": true,
+    "show_sql": false,
     "log_to_file": false,
     "log_file_name_router": "router.log",
     "log_file_name_users": "users.log",

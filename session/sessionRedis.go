@@ -29,7 +29,9 @@ func SetToRedisWithExpiration(sess *models.Session) (err error) {
 	if err != nil {
 		return
 	}
-	sessionMaker.logger.Printf("SETEX: %v\n", r)
+	if sessionMaker.showRedisLog {
+		sessionMaker.logger.Printf("SETEX: %v\n", r)
+	}
 	return
 }
 
@@ -47,7 +49,9 @@ func SetToRedis(sess *models.Session) (err error) {
 	if err != nil {
 		return
 	}
-	sessionMaker.logger.Printf("SET %v\n", r)
+	if sessionMaker.showRedisLog {
+		sessionMaker.logger.Printf("SET %v\n", r)
+	}
 	return
 }
 
@@ -71,7 +75,9 @@ func GetFromRedis(uuid string, sess *models.Session) (err error) {
 	if err != nil {
 		return
 	}
-	sessionMaker.logger.Println(*sess)
+	if sessionMaker.showRedisLog {
+		sessionMaker.logger.Println(*sess)
+	}
 	return
 }
 
@@ -80,6 +86,8 @@ func DelFromRedis(unique string) (err error) {
 	if err != nil {
 		return
 	}
-	sessionMaker.logger.Printf("DEL %v\n", r)
+	if sessionMaker.showRedisLog {
+		sessionMaker.logger.Printf("DEL %v\n", r)
+	}
 	return
 }

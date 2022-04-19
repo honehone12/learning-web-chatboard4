@@ -16,8 +16,10 @@ const (
 )
 
 const (
-	numStretching int  = 10000
+	numStretching      = 10000
 	pwSaltSize    uint = 20
+	maxNumError        = 10
+	lockDuration       = time.Minute * 30
 )
 
 func createUser(user *models.User, corrId string) {
@@ -26,6 +28,9 @@ func createUser(user *models.User, corrId string) {
 		common.HandleError(server, logger, err.Error(), corrId)
 		return
 	}
+
+	user.Password = ""
+	user.Salt = ""
 
 	common.SendOK(server, user, "User", corrId)
 }
@@ -95,12 +100,45 @@ func readUserInternal(user *models.User) (token string, err error) {
 	if err != nil {
 		return
 	}
+
+	// if so this user is locked
+	if user.Locked > 0 {
+		if user.LockedAt.Add(lockDuration).After(time.Now()) {
+			// within lock duration
+			err = errors.New("user locked")
+			return
+		} else {
+			// unlock user
+			user.Locked = 0
+			user.LockedAt = time.Time{}
+			user.NumErrors = 0
+			err = updateUserSQL(user)
+			if err != nil {
+				return
+			}
+			common.LogWarning(logger).Printf("user %s unlocked\n", user.Email)
+		}
+	}
+
 	pw = common.ProcessPassword(
 		pw,
 		user.Salt,
 		numStretching,
 	)
 	if strings.Compare(pw, user.Password) != 0 {
+		// count pw mismatch
+		user.NumErrors++
+		common.LogWarning(logger).Printf("user num error: %v\n", user.NumErrors)
+		if user.NumErrors > maxNumError {
+			// lock user
+			user.Locked = 1
+			user.LockedAt = time.Now()
+			common.LogWarning(logger).Printf("user %s locked\n", user.Email)
+		}
+		err = updateUserSQL(user)
+		if err != nil {
+			return
+		}
 		err = errors.New("password mismatch")
 		return
 	}
@@ -122,6 +160,52 @@ func readUserSQL(user *models.User) (err error) {
 	if err == nil && !ok {
 		err = errors.New("no such user")
 	}
+	return
+}
+
+func updateUserSQL(user *models.User) (err error) {
+	affected, err := dbEngine.Table(usersTable).
+		ID(user.Id).
+		Update(user)
+	if err == nil && affected != 1 {
+		err = fmt.Errorf(
+			"may be unexpected result. returned value was %d",
+			affected,
+		)
+	}
+	return
+}
+
+func lockUser(user *models.User, corrId string) {
+	err := lockUserInternal(user)
+	if err != nil {
+		common.HandleError(server, logger, err.Error(), corrId)
+		return
+	}
+
+	common.LogWarning(logger).Printf("user %s is locked", user.Email)
+
+	user.Password = ""
+	user.Salt = ""
+
+	common.SendOK(server, user, "User", corrId)
+}
+
+func lockUserInternal(user *models.User) (err error) {
+	if common.IsEmpty(user.Email) {
+		err = errors.New("need email")
+		return
+	}
+	user.Password = ""
+
+	err = readUserSQL(user)
+	if err != nil {
+		return
+	}
+
+	user.Locked = 1
+	user.LockedAt = time.Now()
+	err = updateUserSQL(user)
 	return
 }
 

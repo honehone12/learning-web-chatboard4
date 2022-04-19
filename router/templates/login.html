@@ -22,11 +22,11 @@
 
         <input type="hidden" name="state" value="{{ .state }}">
         <div class="form-floating">
-          <input type="email" name="email" class="form-control" id="floating-email" placeholder="Email address" required autofocus>
+          <input type="email" name="email" class="form-control" id="floating-email" placeholder="Email address" minlength="1" maxlength="100" required autofocus>
           <label for="floating-email">Email address</label>
         </div>
         <div class="form-floating">
-          <input type="password" name="password" class="form-control" id="floating-password" placeholder="Password" required>
+          <input type="password" name="password" class="form-control" id="floating-password" placeholder="Password" minlength="6" maxlength="60" required>
           <label for="floating-password">Password</label>
         </div>
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"html/template"
 	"learning-web-chatboard4/common"
@@ -10,6 +11,7 @@ import (
 	"learning-web-chatboard4/session"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,14 +55,23 @@ const (
 </div>`
 )
 
-const maxNumError = 10
+const (
+	minNameLen  = 1
+	maxNameLen  = 100
+	minEmailLen = 1
+	maxEmailLen = 100
+	minPwLen    = 6
+	maxPwLen    = 60
+	maxTopicLen = 5000
+	maxReplyLen = 5000
+)
 
 func handleErrorInternal(
 	loggerErrorMsg string,
 	ctx *gin.Context,
 	redirect bool,
 ) {
-	common.LogError(logger).Println(loggerErrorMsg)
+	common.LogError(logger).Println("recieved error:", loggerErrorMsg)
 	if redirect {
 		errorRedirect(ctx, "internal error")
 	}
@@ -197,14 +208,41 @@ func signupPostInternal(ctx *gin.Context) (err error) {
 	}
 
 	email := ctx.PostForm("email")
+	emailLen := utf8.RuneCountInString(email)
+	if emailLen < minEmailLen || emailLen > maxEmailLen {
+		err = errors.New("invalid input")
+	}
 	err = validate.Var(email, "email")
 	if err != nil {
 		return
 	}
+
+	pw := ctx.PostForm("password")
+	pwLen := utf8.RuneCountInString(pw)
+	if pwLen < minPwLen || pwLen > maxPwLen {
+		err = errors.New("invalid input")
+		return
+	}
+
+	name := ctx.PostForm("name")
+	nameLen := utf8.RuneCountInString(name)
+	if nameLen < minNameLen || nameLen > maxNameLen {
+		err = errors.New("invalid input")
+	}
+
+	// check name pw email is not same
+	if strings.Compare(pw, name) == 0 ||
+		strings.Compare(name, email) == 0 ||
+		strings.Compare(pw, email) == 0 {
+
+		err = errors.New("invalid input")
+		return
+	}
+
 	newUser := models.User{
-		Name:     ctx.PostForm("name"),
+		Name:     name,
 		Email:    email,
-		Password: ctx.PostForm("password"),
+		Password: pw,
 	}
 
 	err = sendRequest(
@@ -241,13 +279,24 @@ func authenticatePostInternal(ctx *gin.Context) (err error) {
 
 	// authenticate
 	email := ctx.PostForm("email")
+	if utf8.RuneCountInString(email) > maxEmailLen {
+		err = errors.New("invalid input")
+		return
+	}
 	err = validate.Var(email, "email")
 	if err != nil {
 		return
 	}
+
+	pw := ctx.PostForm("password")
+	if utf8.RuneCountInString(pw) > maxPwLen {
+		err = errors.New("invalid input")
+		return
+	}
+
 	authUser := models.User{
 		Email:    email,
-		Password: ctx.PostForm("password"),
+		Password: pw,
 	}
 	err = sendRequestAndWait(
 		usersClient,
@@ -257,16 +306,6 @@ func authenticatePostInternal(ctx *gin.Context) (err error) {
 		func(raws rabbitrpc.Raws) (e error) {
 			e = extract(&raws, &authUser)
 			if e != nil {
-				if strings.Compare(
-					e.Error(),
-					"password mismatch",
-				) == 0 {
-					sess.NumErrors++
-					if sess.NumErrors >= maxNumError {
-						// lock the account
-					}
-				}
-
 				handleErrorInternal(e.Error(), ctx, false)
 			}
 			return
@@ -414,8 +453,14 @@ func newTopicPostInternal(ctx *gin.Context) (err error) {
 		return
 	}
 
+	body := ctx.PostForm("topic")
+	if utf8.RuneCountInString(body) > maxTopicLen {
+		err = errors.New("invalid input")
+		return
+	}
+
 	topic := models.Topic{
-		Topic:  ctx.PostForm("topic"),
+		Topic:  body,
 		Owner:  sess.UserName,
 		UserId: sess.UserId,
 	}
@@ -461,6 +506,10 @@ func newReplyPostInternal(ctx *gin.Context) (topiUuId string, err error) {
 	topiUuId = sess.TopicUuId
 
 	body := ctx.PostForm("body")
+	if utf8.RuneCountInString(body) > maxReplyLen {
+		err = errors.New("invlid input")
+		return
+	}
 
 	reply := models.Reply{
 		Body:        body,

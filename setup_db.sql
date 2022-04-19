@@ -9,7 +9,10 @@ CREATE TABLE users (
   email      VARCHAR(255) NOT NULL UNIQUE,
   password   TEXT NOT NULL,
   salt       VARCHAR(255) NOT NULL,
+  num_errors SERIAL,
   token      TEXT,
+  locked     SERIAL,
+  locked_at  TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL   
 );
 

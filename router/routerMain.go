@@ -29,7 +29,11 @@ func main() {
 	}
 
 	//session
-	err = session.StartSessionMaker(config.UseSecureCookie, config.SetHttpOnlyCookie)
+	err = session.StartSessionMaker(
+		config.UseSecureCookie,
+		config.SetHttpOnlyCookie,
+		config.ShowSQL,
+	)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

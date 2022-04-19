@@ -21,15 +21,15 @@
         </h2>
         <input type="hidden" name="state" value="{{ .state }}">
         <div class="form-floating">
-          <input id="floating-name" type="text" name="name" class="form-control" placeholder="Name" required autofocus>
+          <input id="floating-name" type="text" name="name" class="form-control" placeholder="Name" minlength="1" maxlength="100" required autofocus>
           <label for="floating-name">Name</label>
         </div>
         <div class="form-floating">
-          <input id="floating-email" type="email" name="email" class="form-control" placeholder="Email address" required>
+          <input id="floating-email" type="email" name="email" class="form-control" placeholder="Email address" minlength="1" maxlength="100" required>
           <label for="floating-name">Email</label>
         </div>
         <div class="form-floating">
-          <input id="floating-password" type="password" name="password" class="form-control" placeholder="Password" required>
+          <input id="floating-password" type="password" name="password" class="form-control" placeholder="Password" minlength="6" maxlength="60" required>
           <label for="floating-password">Password</label>
         </div>
 
