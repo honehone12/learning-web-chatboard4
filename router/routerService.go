@@ -36,8 +36,10 @@ const (
 	  <a class="navbar-brand" href="/">KEIJIBAN</a>
     </div>
     <div class="nav navbar-nav navbar-right">
-	  <a href="/user/logout">Logout</a>
-    </div>
+	<form id="logout" action="/user/logout" method="post">
+      <button class="btn btn-outline-primary btn-sm" type="submit">Logout</button>
+	</form>
+	</div>
   </div>
 </div>`
 
@@ -169,11 +171,10 @@ func signupGet(ctx *gin.Context) {
 }
 
 // use one more page and use post method
-// or use form button
 // for protecting from CSRF attack
-func logoutGet(ctx *gin.Context) {
+func logoutPost(ctx *gin.Context) {
 	if confirmLoggedIn(ctx) {
-		err := logoutGetInternal(ctx)
+		err := logoutPostInternal(ctx)
 		if err != nil {
 			handleErrorInternal(err.Error(), ctx, true)
 			return
@@ -182,7 +183,7 @@ func logoutGet(ctx *gin.Context) {
 	ctx.Redirect(http.StatusMovedPermanently, "/")
 }
 
-func logoutGetInternal(ctx *gin.Context) (err error) {
+func logoutPostInternal(ctx *gin.Context) (err error) {
 	sess, err := getSessionPtrFromCTX(ctx)
 	if err != nil {
 		return
@@ -211,6 +212,7 @@ func signupPostInternal(ctx *gin.Context) (err error) {
 	emailLen := utf8.RuneCountInString(email)
 	if emailLen < minEmailLen || emailLen > maxEmailLen {
 		err = errors.New("invalid input")
+		return
 	}
 	err = validate.Var(email, "email")
 	if err != nil {
@@ -228,6 +230,7 @@ func signupPostInternal(ctx *gin.Context) (err error) {
 	nameLen := utf8.RuneCountInString(name)
 	if nameLen < minNameLen || nameLen > maxNameLen {
 		err = errors.New("invalid input")
+		return
 	}
 
 	// check name pw email is not same

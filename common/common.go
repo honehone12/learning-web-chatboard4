@@ -2,7 +2,6 @@ package common
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 	"xorm.io/xorm"
 )
 
@@ -159,19 +159,33 @@ func LogError(logger *log.Logger) *log.Logger {
 
 // helpers
 
-func ProcessPassword(pw, salt string, numStretching int) (hashed string) {
-	// see these pkgs
-	// https://pkg.go.dev/golang.org/x/crypto/bcrypt
-	// https://pkg.go.dev/golang.org/x/crypto/scrypt
+// func ProcessPassword(pw, salt string, numStretching int) (hashed string) {
+// 	// see these pkgs
+// 	// https://pkg.go.dev/golang.org/x/crypto/bcrypt
+// 	// https://pkg.go.dev/golang.org/x/crypto/scrypt
 
-	asBytes := []byte(fmt.Sprint(salt, pw))
-	hash := sha256.New()
-	for i := 0; i < numStretching; i++ {
-		asBytes = hash.Sum(asBytes)
+// 	asBytes := []byte(fmt.Sprint(salt, pw))
+// 	hash := sha256.New()
+// 	for i := 0; i < numStretching; i++ {
+// 		asBytes = hash.Sum(asBytes)
+// 	}
+// 	hashed = fmt.Sprintf("%x", asBytes)
+
+// 	return
+// }
+
+func ProcessPassword(pw string) (hashed string, err error) {
+	var bytes []byte
+	bytes, err = bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost+2)
+	if err != nil {
+		return
 	}
+	hashed = string(bytes)
+	return
+}
 
-	hashed = fmt.Sprintf("%x", asBytes)
-
+func CheckPassword(pw, hashed string) (err error) {
+	err = bcrypt.CompareHashAndPassword([]byte(hashed), []byte(pw))
 	return
 }
 

@@ -6,7 +6,6 @@ import (
 	"learning-web-chatboard4/common"
 	"learning-web-chatboard4/common/models"
 	"learning-web-chatboard4/jose"
-	"strings"
 	"time"
 )
 
@@ -28,7 +27,6 @@ func createUser(user *models.User, corrId string) {
 		common.HandleError(server, logger, err.Error(), corrId)
 		return
 	}
-
 	user.Password = ""
 	user.Salt = ""
 
@@ -49,14 +47,15 @@ func createUserInternal(user *models.User) (err error) {
 	if err != nil {
 		return
 	}
-	user.Password = common.ProcessPassword(
-		user.Password,
-		user.Salt,
-		numStretching,
-	)
+	user.Password, err = common.ProcessPassword(user.Password)
+	if err != nil {
+		return
+	}
+
 	user.UuId = common.NewUuIdString()
 	user.CreatedAt = time.Now()
 	err = createUserSQL(user)
+
 	return
 }
 
@@ -120,12 +119,8 @@ func readUserInternal(user *models.User) (token string, err error) {
 		}
 	}
 
-	pw = common.ProcessPassword(
-		pw,
-		user.Salt,
-		numStretching,
-	)
-	if strings.Compare(pw, user.Password) != 0 {
+	err = common.CheckPassword(pw, user.Password)
+	if err != nil {
 		// count pw mismatch
 		user.NumErrors++
 		common.LogWarning(logger).Printf("user num error: %v\n", user.NumErrors)
